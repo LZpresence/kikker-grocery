@@ -1,0 +1,22 @@
+rules_version = '2';
+// Kikker Grocery: a list can be read or changed only by someone who has its long, random link.
+// Nobody can browse or list other people's lists.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function okList(listId) { return listId.size() >= 20 && listId.size() <= 40; }
+    function okItem(d) {
+      return d.name is string && d.name.size() > 0 && d.name.size() <= 80
+        && d.aisle is string && d.aisle.size() <= 20
+        && (!('note' in d) || (d.note is string && d.note.size() <= 120))
+        && d.size() <= 12;
+    }
+    match /lists/{listId} {
+      allow get, create, update: if okList(listId);
+      match /items/{itemId} {
+        allow read: if okList(listId);
+        allow create, update: if okList(listId) && okItem(request.resource.data);
+        allow delete: if okList(listId);
+      }
+    }
+  }
+}

@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Kikker Grocery</title>
+<meta name="description" content="A shared grocery list with Kikker the frog">
+<meta name="theme-color" content="#1f4a47">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="KikkerGrocery">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+/* Layout: one phone-width column. Frog-green header with Kikker and his basket; the list grouped by aisle; bottom tabs. */
+:root{
+  --sky:#1f4a47; --sky-2:#2f625f; --on-sky:#f1f8f6; --on-sky-dim:#b5d0cb;
+  --bg:#eef3f1; --card:#ffffff; --fg:#13211f; --dim:#5a6d69; --line:#d6e2de;
+  --accent:#e9823a; --accent-soft:#fde9d8; --good:#2f8f57; --good-soft:#dff2e6; --danger:#b4471f;
+  --display:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+  --body:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --sky:#0c1817; --sky-2:#15302d; --on-sky:#e8f3f0; --on-sky-dim:#8fb0aa;
+  --bg:#081211; --card:#11201e; --fg:#e2ece9; --dim:#8ba29d; --line:#20332f;
+  --accent:#f09a55; --accent-soft:#3a2615; --good:#5cc489; --good-soft:#15301f; --danger:#f08a5a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --sky:#0c1817; --sky-2:#15302d; --on-sky:#e8f3f0; --on-sky-dim:#8fb0aa;
+  --bg:#081211; --card:#11201e; --fg:#e2ece9; --dim:#8ba29d; --line:#20332f;
+  --accent:#f09a55; --accent-soft:#3a2615; --good:#5cc489; --good-soft:#15301f; --danger:#f08a5a; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{background:var(--sky)}
+body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.45 var(--body);padding-bottom:calc(140px + env(safe-area-inset-bottom,0px));-webkit-tap-highlight-color:transparent;min-height:100vh}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+.wrap{max-width:560px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+.top{background:linear-gradient(180deg,var(--sky),var(--sky-2));color:var(--on-sky);padding-top:env(safe-area-inset-top,0px)}
+.top .wrap{display:grid;grid-template-columns:104px 1fr;gap:12px;align-items:center;padding-block:8px 14px}
+#kikker svg{width:104px;height:104px;display:block}
+h1{font:600 30px/1 var(--display);margin:0;letter-spacing:.01em}
+.say{margin:6px 0 0;font-size:15px}
+.sync{display:inline-flex;align-items:center;gap:6px;margin-top:8px;font-size:12px;font-weight:700;padding:3px 10px;border-radius:999px;background:rgba(255,255,255,.12);color:var(--on-sky-dim)}
+.sync i{width:8px;height:8px;border-radius:50%;background:#7be3a3;display:inline-block}
+.sync.warn{color:#ffd9b0}
+
+main{padding-block:6px 20px}
+h2{display:flex;align-items:center;gap:8px;font:600 15px/1 var(--display);letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin:20px 0 8px}
+h2 span{font-size:18px;letter-spacing:0}
+h2 small{font:700 12px var(--body);letter-spacing:0;background:var(--line);padding:2px 8px;border-radius:999px}
+.items{list-style:none;margin:0;padding:0;background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.item{display:flex;align-items:stretch;border-top:1px solid var(--line)}
+.item:first-child{border-top:0}
+.tick{flex:1;min-width:0;display:flex;align-items:center;gap:14px;padding:13px 6px 13px 14px;background:none;border:0;text-align:left;cursor:pointer}
+.box{flex:none;width:28px;height:28px;border-radius:50%;border:2.5px solid var(--sky-2);display:grid;place-items:center;font-weight:700;font-size:16px;color:#fff}
+.txt b{display:block;font-weight:700;font-size:18px;line-height:1.2;overflow-wrap:anywhere}
+.txt small{display:block;font-size:13px;color:var(--dim);margin-top:1px}
+.item.got .box{background:var(--good);border-color:var(--good)}
+.item.got .txt b{text-decoration:line-through;color:var(--dim);font-weight:400}
+.more{flex:none;width:48px;background:none;border:0;color:var(--dim);font-size:22px;cursor:pointer}
+h2.cart{color:var(--good)}
+
+.addbar{position:sticky;top:0;z-index:5;background:var(--bg);padding:12px 0 4px}
+.addbar form{display:flex;gap:8px}
+.addbar input{flex:1;min-width:0;padding:13px 14px;border-radius:14px;border:1.5px solid var(--line);background:var(--card);font-size:17px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{padding:9px 14px;border-radius:999px;border:1.5px solid var(--line);background:var(--card);cursor:pointer;font-size:16px;line-height:1.2}
+.chip.on{background:var(--sky-2);border-color:var(--sky-2);color:#fff;font-weight:700}
+.chip.new{background:var(--accent-soft);border-color:var(--accent);font-weight:700}
+.chip small{font-weight:400;color:var(--dim);margin-left:4px}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:10px;margin-top:12px}
+.card p{margin:0;font-size:15px;color:var(--dim)}
+.card b{font-size:17px}
+.card.warn{background:var(--accent-soft);border-color:var(--accent)}
+.card a{color:inherit}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 16px;border-radius:12px;border:1px solid var(--line);background:var(--card);cursor:pointer;font-weight:700}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#1a1206}
+.btn.ghost{background:none;border-color:transparent}
+.btn.danger{color:var(--danger)}
+.field{display:flex;flex-direction:column;gap:4px;font-size:14px;color:var(--dim)}
+.field small{font-size:12px}
+.field input,.field select,.card input{padding:11px 12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--fg);width:100%}
+.linkbox{font-size:13px}
+.note{font-size:13px;color:var(--dim)}
+.empty{text-align:center;padding:30px 10px}
+.empty b{font:600 24px/1.1 var(--display);display:block}
+.empty p{color:var(--dim);margin:6px 0 16px}
+
+.endbar{position:fixed;left:0;right:0;bottom:calc(62px + env(safe-area-inset-bottom,0px));z-index:14;padding:10px 16px;background:linear-gradient(180deg,transparent,var(--bg) 35%)}
+.endbar .btn{width:100%;max-width:528px;margin:0 auto;display:flex;font-size:18px;padding:15px;background:var(--good);border-color:var(--good);color:#fff;box-shadow:0 6px 18px rgba(0,0,0,.18)}
+
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:15;display:flex;justify-content:center;background:var(--card);border-top:1px solid var(--line);padding:0 8px env(safe-area-inset-bottom,0px)}
+.tab{flex:1;max-width:160px;position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;padding:9px 0 8px;background:none;border:0;color:var(--dim);font-size:13px;font-weight:700;cursor:pointer}
+.tab.on{color:var(--sky-2)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .tab.on{color:var(--good)}}
+.badge{position:absolute;top:4px;left:calc(50% + 6px);min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--accent);color:#1a1206;font-size:11px;line-height:18px}
+.badge:empty{display:none}
+
+.sheet{position:fixed;inset:0;z-index:30;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;justify-content:center}
+.panel{width:100%;max-width:560px;background:var(--card);border-radius:20px 20px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:12px;max-height:85vh;overflow:auto}
+.panel h3{margin:0;font:600 24px/1.1 var(--display)}
+.panel p{margin:0;color:var(--dim)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(140px + env(safe-area-inset-bottom,0px));z-index:40;background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:15px;max-width:90vw;text-align:center}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <div id="kikker" aria-hidden="true"></div>
+  <div><h1>Kikker Grocery</h1><p class="say" id="say"></p><span class="sync" id="sync"></span></div>
+</div></header>
+
+<main class="wrap">
+  <section id="view-list"></section>
+  <section id="view-add" hidden>
+    <div class="addbar"><form id="addForm" autocomplete="off"><input id="q" type="search" placeholder="Search or add an item" enterkeyhint="done" aria-label="Search or add an item"></form></div>
+    <div id="addResults"></div>
+  </section>
+  <section id="view-share" hidden></section>
+</main>
+
+<div class="endbar" id="endbar" hidden><button class="btn" id="endBtn" data-act="end">End trip</button></div>
+
+<nav class="tabs" aria-label="Views">
+  <button class="tab on" data-tab="list"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2"/></svg>List<span class="badge" id="countBadge"></span></button>
+  <button class="tab" data-tab="add"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10h18l-2 10H5z"/><path d="M8 10l3-6M16 10l-3-6"/><path d="M12 13v4M10 15h4"/></svg>Add</button>
+  <button class="tab" data-tab="share"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="8" r="3.5"/><circle cx="17" cy="9" r="2.5"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M15 14.5c3 0 6 1.8 6 5.5"/></svg>Share</button>
+</nav>
+
+<div class="sheet" id="sheet" hidden><div class="panel" id="panel" role="dialog" aria-modal="true"></div></div>
+<div class="toast" id="toast" hidden role="status"></div>
+
+<script src="kikker.js"></script>
+<script type="module" src="app.js"></script>
+</body>
+</html>
